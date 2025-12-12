@@ -12,6 +12,10 @@ server.host: "{{ kibana_server_host }}"
 # This setting cannot end in a slash.
 #server.basePath: ""
 
+{% if kibana_public_base_url is defined %}
+server.publicBaseUrl: "{{ kibana_public_base_url }}"
+{% endif %}
+
 # Specifies whether Kibana should rewrite requests that are prefixed with
 # `server.basePath` or require that they are rewritten by your reverse proxy.
 # This setting was effectively always `false` before Kibana 6.3 and will
@@ -22,7 +26,11 @@ server.host: "{{ kibana_server_host }}"
 #server.maxPayloadBytes: 1048576
 
 # The Kibana server's name.  This is used for display purposes.
+{% if kibana_server_name is defined %}
+server.name: "{{ kibana_server_name }}"
+{% else %}
 #server.name: "your-hostname"
+{% endif %}
 
 # The URL of the Elasticsearch instance to use for all your queries.
 {% if kibana_version == "6.x" %}
@@ -99,10 +107,30 @@ elasticsearch.password: "{{ kibana_elasticsearch_password }}"
 #elasticsearch.logQueries: false
 
 # Specifies the path where Kibana creates the process ID file.
-#pid.file: /var/run/kibana.pid
+pid.file: /var/run/kibana/kibana.pid
 
-# Enables you specify a file where Kibana stores log output.
-#logging.dest: stdout
+{% if kibana_encrypted_saved_objects_key is defined %}
+xpack.encryptedSavedObjects.encryptionKey: "{{ kibana_encrypted_saved_objects_key }}"
+{% endif %}
+{% if kibana_reporting_key is defined %}
+xpack.reporting.encryptionKey: "{{ kibana_reporting_key }}"
+{% endif %}
+{% if kibana_security_key is defined %}
+xpack.security.encryptionKey: "{{ kibana_security_key }}"
+{% endif %}
+
+# Enables you to specify a file where Kibana stores log output.
+logging:
+  appenders:
+    file:
+      type: file
+      fileName: /var/log/kibana/kibana.log
+      layout:
+        type: json
+  root:
+    appenders:
+      - default
+      - file
 
 # Set the value of this setting to true to suppress all logging output.
 #logging.silent: false
